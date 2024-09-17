@@ -25,6 +25,43 @@ case class FuzzySet[A](elements: Map[A, Double]) {
     })
   }
 
+  // Addition
+  def add(otherSet: FuzzySet[A]): FuzzySet[A] = {
+    FuzzySet(elements.map {
+      case (x, valueA) =>
+        val valueB = otherSet.elements.getOrElse(x, 0.0) // If x is not in B, treat as 0
+        val value = valueA + valueB
+        (x, math.min(1.0, value)) // Union takes the max value
+    })
+  }
+
+  // Multiplication
+  def mult(otherSet: FuzzySet[A]): FuzzySet[A] = {
+    FuzzySet(elements.map {
+      case (x, valueA) =>
+        val valueB = otherSet.elements.getOrElse(x, 0.0) // If x is not in B, treat as 0
+        val value = valueA * valueB
+        (x, value) // Union takes the max value
+    })
+  }
+
+  // alphaCut function that returns a set of elements whose membership is >= alpha
+  def alphaCut(alpha: Double): Set[A] = {
+    // Initialize an empty set to hold the result
+    var resultSet: Set[A] = Set()
+
+    // Loop through each element in the fuzzy set
+    for ((element, membership) <- elements) {
+      if (membership >= alpha) {
+        resultSet = resultSet + element
+      }
+    }
+
+    resultSet
+  }
+
+
+
 }
   //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
