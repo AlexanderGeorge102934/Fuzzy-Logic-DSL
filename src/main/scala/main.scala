@@ -17,8 +17,14 @@ case class FuzzySet[A](elements: Map[A, Double]) {
         (x, math.min(valueA, valueB)) // Union takes the max value
     })
   }
-  
-  
+
+  // Fuzzy Complement (NOT)
+  def complement: FuzzySet[A] = {
+    FuzzySet(elements.map { case (x, value) =>
+      (x, 1.0 - value)
+    })
+  }
+
 }
   //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
