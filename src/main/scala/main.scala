@@ -1,102 +1,133 @@
-case class FuzzySet[A](elements: Map[A, Double]) {
+import scala.collection.mutable
+// Has to support both a value or a set as input 
 
-  // Perform fuzzy set operation based on input string
-  def performOperation(operation: String, otherSet: Option[FuzzySet[A]] = None): FuzzySet[A] = {
-    operation match {
-      // Fuzzy Union (OR)
-      case "union" =>
-        otherSet match {
-          case Some(set) =>
-            FuzzySet(elements.map { case (x, valueA) =>
-              val valueB = set.elements.getOrElse(x, 0.0)
-              (x, math.max(valueA, valueB)) // Union: take the max value
-            })
-          case None => throw new IllegalArgumentException("Union requires another set")
-        }
+// Define an environment for variable storage
+type Environment = mutable.Map[String, mutable.Map[String, Double]] // Map from gate name to variables
 
-      // Fuzzy Intersection (AND)
-      case "intersection" =>
-        otherSet match {
-          case Some(set) =>
-            FuzzySet(elements.map { case (x, valueA) =>
-              val valueB = set.elements.getOrElse(x, 0.0)
-              (x, math.min(valueA, valueB)) // Intersection: take the min value
-            })
-          case None => throw new IllegalArgumentException("Intersection requires another set")
-        }
+object FuzzyLogicDSL:
 
-      // Fuzzy Complement (NOT)
-      case "complement" =>
-        FuzzySet(elements.map { case (x, value) =>
-          (x, 1.0 - value) // Complement: 1 - value
-        })
+  // Implicit environment for scoping variables within gates
+  given env: Environment = mutable.Map()
 
-      // Fuzzy Addition (capped at 1)
-      case "add" =>
-        otherSet match {
-          case Some(set) =>
-            FuzzySet(elements.map { case (x, valueA) =>
-              val valueB = set.elements.getOrElse(x, 0.0)
-              (x, math.min(1.0, valueA + valueB)) // Add and cap at 1.0
-            })
-          case None => throw new IllegalArgumentException("Add requires another set")
-        }
+  // Base class for fuzzy expressions
+  abstract class FuzzyExpr:
+    def eval: Double
 
-      // Fuzzy Multiplication
-      case "multi" =>
-        otherSet match {
-          case Some(set) =>
-            FuzzySet(elements.map { case (x, valueA) =>
-              val valueB = set.elements.getOrElse(x, 0.0)
-              (x, valueA * valueB) // Multiply values
-            })
-          case None => throw new IllegalArgumentException("Multiplication requires another set")
-        }
+  // Concrete classes for different operations
+  case class FuzzyValue(v: Double) extends FuzzyExpr:
+    def eval: Double = v
 
-      // Default case for unknown operation
-      case _ => throw new IllegalArgumentException(s"Unknown operation: $operation")
+  case class FuzzyVariable(name: String) extends FuzzyExpr:
+    def eval: Double =
+      // Fetch the value from the environment based on the current gate's scope
+      summon[Environment].collectFirst {
+        case (_, scope) if scope.contains(name) => scope(name)
+      }.getOrElse(throw new Exception(s"Variable $name not found in any scope"))
+
+  // Operations like addition, multiplication, etc.
+  case class FuzzyAdd(e1: FuzzyExpr, e2: FuzzyExpr) extends FuzzyExpr:
+    def eval: Double = math.min(1.0, e1.eval + e2.eval)
+
+  case class FuzzyMult(e1: FuzzyExpr, e2: FuzzyExpr) extends FuzzyExpr:
+    def eval: Double = e1.eval * e2.eval
+
+  case class FuzzyComplement(e: FuzzyExpr) extends FuzzyExpr:
+    def eval: Double = 1.0 - e.eval
+
+  case class FuzzyAND(e1: FuzzyExpr, e2: FuzzyExpr) extends FuzzyExpr:
+    def eval: Double = math.min(e1.eval, e2.eval) // AND is min
+
+  case class FuzzyOR(e1: FuzzyExpr, e2: FuzzyExpr) extends FuzzyExpr:
+    def eval: Double = math.max(e1.eval, e2.eval) // OR is max
+
+  case class FuzzyXOR(e1: FuzzyExpr, e2: FuzzyExpr) extends FuzzyExpr:
+    def eval: Double = math.max(e1.eval, e2.eval) - math.min(e1.eval, e2.eval) // XOR formula
+
+  case class FuzzyAlphaCut(e: FuzzyExpr, alpha: Double) extends FuzzyExpr:
+    def eval: Double = if e.eval >= alpha then e.eval else 0.0 // Alpha Cut
+
+  // Class for holding gates
+  case class Gate(name: String)
+
+  // Gate system that stores gates
+  case class GateSystem(gates: mutable.Map[String, FuzzyExpr] = mutable.Map())
+
+  // Global mutable gate system
+  val gateSystem = GateSystem()
+
+  // Assign variables to values or gates to expressions
+  // Assignment function for variables within a specific gate's scope
+  def Assign(left: Any, right: FuzzyExpr)(using gate: Gate): Unit = left match
+    // Case 1: Assign a value to a FuzzyVariable within the current gate's scope
+    case FuzzyVariable(name) =>
+      summon[Environment]
+        .getOrElseUpdate(gate.name, mutable.Map[String, Double]())
+        .update(name, right.eval)
+
+    // Case 2: Assign a fuzzy expression to a Gate (store it in the gate system)
+    case gate: Gate =>
+      gateSystem.gates(gate.name) = right
+
+    case _ =>
+      throw new Exception("Invalid assignment")
+
+  // Scope function that defines variable bindings within the context of a logic gate
+  def Scope(gate: Gate)(block: Gate ?=> Unit): Unit =
+    given Gate = gate
+    block
+
+  // Test the logic gate result using the active bindings in the gate's context
+  def TestGate(gateName: String, variableName: String): Double =
+    // Fetch the logic gate expression from the gate system
+    val gateExpr = gateSystem.gates.getOrElse(gateName, throw new Exception(s"Gate $gateName not found"))
+
+    // Fetch the variable value from the specific gate's context
+    val gateScope = summon[Environment].getOrElse(gateName, throw new Exception(s"No scope found for gate $gateName"))
+
+    gateScope.getOrElse(variableName, throw new Exception(s"Variable $variableName not found in gate $gateName"))
+
+  // Functions for fuzzy operations
+  def ADD(e1: FuzzyExpr, e2: FuzzyExpr): FuzzyExpr = FuzzyAdd(e1, e2)
+  def MULT(e1: FuzzyExpr, e2: FuzzyExpr): FuzzyExpr = FuzzyMult(e1, e2)
+  def COMPLEMENT(e: FuzzyExpr): FuzzyExpr = FuzzyComplement(e)
+  def AND(e1: FuzzyExpr, e2: FuzzyExpr): FuzzyExpr = FuzzyAND(e1, e2)
+  def OR(e1: FuzzyExpr, e2: FuzzyExpr): FuzzyExpr = FuzzyOR(e1, e2)
+  def XOR(e1: FuzzyExpr, e2: FuzzyExpr): FuzzyExpr = FuzzyXOR(e1, e2)
+  def ALPHA_CUT(e: FuzzyExpr, alpha: Double): FuzzyExpr = FuzzyAlphaCut(e, alpha)
+
+
+object Main:
+  import FuzzyLogicDSL.*
+
+  def main(args: Array[String]): Unit =
+    println("Running Scope and Assignment Tests")
+
+    // 1. Define scope for logicGate1 and assign variables using Assign
+    Scope(Gate("logicGate1")) {
+      Assign(FuzzyVariable("A"), FuzzyValue(0.5))
+      Assign(FuzzyVariable("B"), FuzzyValue(0.7))
     }
-  }
-
-  // alphaCut function that returns a set of elements whose membership is >= alpha
-  def alphaCut(alpha: Double): Set[A] = {
-    elements.filter { case (_, membership) => membership >= alpha }.keys.toSet
-  }
-}
+    
+    //Anonymous scoping shouldn't have specific names for the scope meaning anything within 
 
 
 
+    // 2. Assign a logic gate with a fuzzy expression that uses A and B
+    Assign(Gate("logicGate1"), ADD(MULT(FuzzyVariable("A"), FuzzyValue(0.2)), FuzzyValue(0.3)))(using Gate("logicGate1"))
 
-// GateSystem class for managing logic gates
-case class GateSystem(gates: Map[String, FuzzySet[String]] = Map()) {
+    // Test the logic gate result with the input A, should return 0.5
+    println(s"TestGate result for A = ${TestGate("logicGate1", "A")}") // Expected value is 0.5
 
-  // Assign a gate to a name, return a new instance of GateSystem with updated gates
-  def assign(name: String, result: FuzzySet[String]): GateSystem = {
-    GateSystem(gates + (name -> result)) // Return a new GateSystem with updated gates
-  }
+    // Test the logic gate result with the input B, should return 0.7
+    println(s"TestGate result for B = ${TestGate("logicGate1", "B")}") // Expected value is 0.7
 
-  // Test the logic gate result for a particular element
-  def testGate(gateName: String, inputName: String): Option[Double] = {
-    gates.get(gateName).flatMap(_.elements.get(inputName)) // Return the element's value if found
-  }
-}
+    // 3. Test composite gate
+    Scope(Gate("compositeGate")) {
+      Assign(FuzzyVariable("A"), FuzzyValue(0.9))
+      Assign(FuzzyVariable("B"), FuzzyValue(0.1))
+    }
+    Assign(Gate("compositeGate"), ADD(FuzzyVariable("A"), FuzzyVariable("B")))(using Gate("compositeGate"))
 
-// Operation functions that return FuzzySets
-//def ADD(setA: FuzzySet[String], setB: FuzzySet[String]): FuzzySet[String] = setA.add(setB)
-//def MULTI(setA: FuzzySet[String], setB: FuzzySet[String]): FuzzySet[String] = setA.multi(setB)
-//def OR(setA: FuzzySet[String], setB: FuzzySet[String]): FuzzySet[String] = setA.union(setB)
-//def AND(setA: FuzzySet[String], setB: FuzzySet[String]): FuzzySet[String] = setA.intersection(setB)
-//def NOT(setA: FuzzySet[String]): FuzzySet[String] = setA.complement
-  //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-@main
-def main(): Unit =
-  //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-  // to see how IntelliJ IDEA suggests fixing it.
-  (1 to 5).map(println)
-
-  for (i <- 1 to 5) {
-    //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-    // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-    println(s"i = $i")
-  }
+    // Test composite gate result
+    println(s"TestGate result for A in compositeGate = ${TestGate("compositeGate", "A")}") // Expected value is 0.9
+    println(s"TestGate result for B in logicGate1 = ${TestGate("logicGate1", "B")}") // Expected value is 0.7
