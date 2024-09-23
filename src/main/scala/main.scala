@@ -76,18 +76,18 @@ object FuzzyLogicDSL:
     given Gate = gate
     block
 
-  // Anonymous Scope Function: Executes block without assigning variables
+  // Anonymous Scope Function: Executes block and restores specific gate environment after execution
   def AnonymousScope(block: => Unit): Unit =
-    // Save the current environment state
-    val currentEnv = summon[Environment].clone()
+    // Save the current environment state for specific gates by deep cloning the environment
+    val originalEnv = summon[Environment].map { case (k, v) => k -> v.clone() }
 
     // Execute the block within the anonymous scope
     try {
-      block // Execute the anonymous block without assigning variables
+      block // Execute the anonymous block
     } finally {
-      // Restore the environment after execution, discarding any changes
+      // Restore the specific environment of each gate after execution
       summon[Environment].clear()
-      summon[Environment].addAll(currentEnv)
+      summon[Environment].addAll(originalEnv) // Reset to the original environment
     }
 
 
@@ -123,7 +123,7 @@ object Main:
       Assign(FuzzyVariable("B"), FuzzyValue(0.7))
     }
 
-    Assign(Gate("logicGate1"), ADD(FuzzyVariable("A"),FuzzyVariable("B")))(using Gate("logicGate1"))
+    Assign(Gate("logicGate1"), ADD(FuzzyVariable("A"), FuzzyVariable("B")))(using Gate("logicGate1"))
 
     println(s"TestGate result for A in logicGate1 = ${TestGate("logicGate1", "A")}") // Should return 0.5
 
@@ -134,13 +134,28 @@ object Main:
         Assign(FuzzyVariable("tempVar"), FuzzyValue(0.11)) // Assign a value to tempVar
       }
 
+      // Inside anonymous scope, modifying A for logicGate1 (this should not persist after scope ends)
+      Scope(Gate("logicGate1")) {
+        Assign(FuzzyVariable("A"), FuzzyValue(0.29))
+      }
+
       // You can evaluate an expression within the scope
       Assign(Gate("tempGate"), ADD(MULT(FuzzyValue(0.9), FuzzyValue(0.2)), FuzzyValue(0.3)))(using Gate("tempGate"))
 
       // Testing the expression via a gate
-      println(s"Anonymous Scope tempGate = ${TestGate("tempGate", "tempVar")}") // Should return the value for tempVar
+      println(s"Anonymous Scope tempGate = ${TestGate("tempGate", "tempVar")}") // Should return 0.11
+
+      println(s"TestGate result for A in logicGate1 = ${TestGate("logicGate1", "A")}") // Should Return 0.29 since scope of LogicGate1 Exists
     }
 
+    // Temp Gate shouldn't exist and SHOULD throw an error 
+    try {
+      println(s"Anonymous Scope tempGate = ${TestGate("tempGate", "tempVar")}") 
+    } catch {
+      case e: Exception =>
+        println(s"Error during TestGate for tempGate: ${e.getMessage}")
+    }
+      
 
     // Outside the anonymous scope, the environment should be unchanged
     println(s"TestGate result for A in logicGate1 = ${TestGate("logicGate1", "A")}") // Should return 0.5
@@ -153,27 +168,3 @@ object Main:
     }
 
     println(s"TestGate result for logicGate1 = ${TestGate("logicGate1", "A")}")
-//    
-//    //Anonymous scoping shouldn't have specific names for the scope meaning anything within 
-//
-//
-//
-//    // 2. Assign a logic gate with a fuzzy expression that uses A and B
-//    Assign(Gate("logicGate1"), ADD(MULT(FuzzyVariable("A"), FuzzyValue(0.2)), FuzzyValue(0.3)))(using Gate("logicGate1"))
-//
-//    // Test the logic gate result with the input A, should return 0.5
-//    println(s"TestGate result for A = ${TestGate("logicGate1", "A")}") // Expected value is 0.5
-//
-//    // Test the logic gate result with the input B, should return 0.7
-//    println(s"TestGate result for B = ${TestGate("logicGate1", "B")}") // Expected value is 0.7
-//
-//    // 3. Test composite gate
-//    Scope(Gate("compositeGate")) {
-//      Assign(FuzzyVariable("A"), FuzzyValue(0.9))
-//      Assign(FuzzyVariable("B"), FuzzyValue(0.1))
-//    }
-//    Assign(Gate("compositeGate"), ADD(FuzzyVariable("A"), FuzzyVariable("B")))(using Gate("compositeGate"))
-//
-//    // Test composite gate result
-//    println(s"TestGate result for A in compositeGate = ${TestGate("compositeGate", "A")}") // Expected value is 0.9
-//    println(s"TestGate result for B in logicGate1 = ${TestGate("logicGate1", "B")}") // Expected value is 0.7
