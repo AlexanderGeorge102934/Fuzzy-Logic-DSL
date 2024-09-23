@@ -1,13 +1,14 @@
 import scala.collection.mutable
-// Has to support both a value or a set as input 
 
-// Define an environment for variable storage
+// Environment for variable storage
 type Environment = mutable.Map[String, mutable.Map[String, Double]] // Map from gate name to variables
+type GlobalEnvironment = mutable.Map[String, Double] // Global variable environment
 
 object FuzzyLogicDSL:
 
   // Implicit environment for scoping variables within gates
   given env: Environment = mutable.Map()
+  val globalEnv: GlobalEnvironment = mutable.Map() // Global environment for unscoped variables
 
   // Base class for fuzzy expressions
   abstract class FuzzyExpr:
@@ -19,10 +20,13 @@ object FuzzyLogicDSL:
 
   case class FuzzyVariable(name: String) extends FuzzyExpr:
     def eval: Double =
-      // Fetch the value from the environment based on the current gate's scope
+      // Try fetching the value from the environment based on the current gate's scope
       summon[Environment].collectFirst {
         case (_, scope) if scope.contains(name) => scope(name)
-      }.getOrElse(throw new Exception(s"Variable $name not found in any scope"))
+      }.getOrElse(
+        // If not found in the scoped environment, fallback to the global environment
+        globalEnv.getOrElse(name, throw new Exception(s"Variable $name not found in any scope or globally"))
+      )
 
   // Operations like addition, multiplication, etc.
   case class FuzzyAdd(e1: FuzzyExpr, e2: FuzzyExpr) extends FuzzyExpr:
@@ -55,14 +59,16 @@ object FuzzyLogicDSL:
   // Global mutable gate system
   val gateSystem = GateSystem()
 
-  // Assign variables to values or gates to expressions
-  // Assignment function for variables within a specific gate's scope
-  def Assign(left: Any, right: FuzzyExpr)(using gate: Gate): Unit = left match
+  // Assignment function for variables within a specific gate's scope or globally
+  def Assign(left: Any, right: FuzzyExpr)(using gate: Gate = Gate("global")): Unit = left match
     // Case 1: Assign a value to a FuzzyVariable within the current gate's scope
     case FuzzyVariable(name) =>
-      summon[Environment]
-        .getOrElseUpdate(gate.name, mutable.Map[String, Double]())
-        .update(name, right.eval)
+      if gate.name == "global" then
+        globalEnv.update(name, right.eval) // Global assignment
+      else
+        summon[Environment]
+          .getOrElseUpdate(gate.name, mutable.Map[String, Double]())
+          .update(name, right.eval)
 
     // Case 2: Assign a fuzzy expression to a Gate (store it in the gate system)
     case gate: Gate =>
@@ -76,10 +82,13 @@ object FuzzyLogicDSL:
     given Gate = gate
     block
 
-  // Anonymous Scope Function: Executes block and restores specific gate environment after execution
+  // Anonymous Scope Function: Executes block and restores specific gate environment and global environment after execution
   def AnonymousScope(block: => Unit): Unit =
     // Save the current environment state for specific gates by deep cloning the environment
     val originalEnv = summon[Environment].map { case (k, v) => k -> v.clone() }
+
+    // Save the current state of the global environment
+    val originalGlobalEnv = globalEnv.clone()
 
     // Execute the block within the anonymous scope
     try {
@@ -88,18 +97,34 @@ object FuzzyLogicDSL:
       // Restore the specific environment of each gate after execution
       summon[Environment].clear()
       summon[Environment].addAll(originalEnv) // Reset to the original environment
+
+      // Restore the global environment
+      globalEnv.clear()
+      globalEnv.addAll(originalGlobalEnv) // Reset to the original global environment
     }
 
 
-  // Test the logic gate result using the active bindings in the gate's context
+  // Test the logic gate result using the active bindings in the gate's context or globally
   def TestGate(gateName: String, variableName: String): Double =
-    // Fetch the logic gate expression from the gate system
-    val gateExpr = gateSystem.gates.getOrElse(gateName, throw new Exception(s"Gate $gateName not found"))
+    // Check if a gate exists and the variable is scoped within that gate
+    if summon[Environment].contains(gateName) then
+      summon[Environment](gateName).get(variableName) match {
+        case Some(value) => value
+        case None =>
+          // Fallback to global scope if the variable is not found in the gate
+          globalEnv.getOrElse(variableName, throw new Exception(s"Variable $variableName not found globally or in gate $gateName"))
+      }
+    else
+      // If the gate doesn't exist, fallback to the global scope directly
+      globalEnv.getOrElse(variableName, throw new Exception(s"Variable $variableName not found globally or in gate $gateName"))
 
-    // Fetch the variable value from the specific gate's context
-    val gateScope = summon[Environment].getOrElse(gateName, throw new Exception(s"No scope found for gate $gateName"))
+  // Evaluate the expression assigned to the gate, if any
+  def EvaluateGateExpression(gateName: String): Double =
+    gateSystem.gates.get(gateName) match {
+      case Some(expr) => expr.eval
+      case None => throw new Exception(s"No expression assigned to gate $gateName")
+    }
 
-    gateScope.getOrElse(variableName, throw new Exception(s"Variable $variableName not found in gate $gateName"))
 
   // Functions for fuzzy operations
   def ADD(e1: FuzzyExpr, e2: FuzzyExpr): FuzzyExpr = FuzzyAdd(e1, e2)
@@ -117,18 +142,33 @@ object Main:
   def main(args: Array[String]): Unit =
     println("Running Scope and Assignment Tests")
 
+    // Assigning variables without a scope to global values
+    Assign(FuzzyVariable("X"), FuzzyValue(0.2)) // Global assignment
+    Assign(FuzzyVariable("Y"), FuzzyValue(0.4)) // Global assignment
+
+    println(s"Global X = ${TestGate("global", "X")}") // Should return 0.2
+    println(s"Global Y = ${TestGate("global", "Y")}") // Should return 0.4
+
+
+
     // Normal Scope (variables will persist)
     Scope(Gate("logicGate1")) {
       Assign(FuzzyVariable("A"), FuzzyValue(0.5))
       Assign(FuzzyVariable("B"), FuzzyValue(0.7))
     }
 
+
     Assign(Gate("logicGate1"), ADD(FuzzyVariable("A"), FuzzyVariable("B")))(using Gate("logicGate1"))
 
     println(s"TestGate result for A in logicGate1 = ${TestGate("logicGate1", "A")}") // Should return 0.5
+    println(s"TestGate result for Global X in logicGate1 = ${TestGate("logicGate1", "X")}") // Should return 0.2
+    println(s"Expression result for logicGate1 A + B = ${EvaluateGateExpression("logicGate1")}") // Should evaluate A + B = 0.5 + 0.7
 
     // Anonymous Scope (no variable assignments, only expression evaluations)
     AnonymousScope {
+      Assign(FuzzyVariable("Y"), FuzzyValue(0.90)) // Global assignment
+      println(s"Global Y in Anon Scope = ${TestGate("global", "Y")}") // Should return 0.9
+
       // Assign variables in tempGate before testing it
       Scope(Gate("tempGate")) {
         Assign(FuzzyVariable("tempVar"), FuzzyValue(0.11)) // Assign a value to tempVar
@@ -139,26 +179,32 @@ object Main:
         Assign(FuzzyVariable("A"), FuzzyValue(0.29))
       }
 
+      println(s"Expression result for logicGate1 A + B (A is now 0.29, Anon Scope) = ${EvaluateGateExpression("logicGate1")}") // Should evaluate A + B = 0.29 + 0.7
+
       // You can evaluate an expression within the scope
       Assign(Gate("tempGate"), ADD(MULT(FuzzyValue(0.9), FuzzyValue(0.2)), FuzzyValue(0.3)))(using Gate("tempGate"))
+
+      println(s"Expression result for tempGate in Anon Scope= ${EvaluateGateExpression("tempGate")}") //Should evaluate (0.9 * 0.2)  + 0.3
 
       // Testing the expression via a gate
       println(s"Anonymous Scope tempGate = ${TestGate("tempGate", "tempVar")}") // Should return 0.11
 
-      println(s"TestGate result for A in logicGate1 = ${TestGate("logicGate1", "A")}") // Should Return 0.29 since scope of LogicGate1 Exists
+      println(s"TestGate result for A in Anon Scope logicGate1 = ${TestGate("logicGate1", "A")}") // Should Return 0.29 since scope of LogicGate1 Exists
     }
 
-    // Temp Gate shouldn't exist and SHOULD throw an error 
+    println(s"Global Y after Anon Scope = ${TestGate("global", "Y")}") // Should return 0.4
+
+    // Temp Gate shouldn't exist and SHOULD throw an error
     try {
-      println(s"Anonymous Scope tempGate = ${TestGate("tempGate", "tempVar")}") 
+      println(s"Anonymous Scope tempGate = ${TestGate("tempGate", "tempVar")}")
     } catch {
       case e: Exception =>
         println(s"Error during TestGate for tempGate: ${e.getMessage}")
     }
-      
+
 
     // Outside the anonymous scope, the environment should be unchanged
-    println(s"TestGate result for A in logicGate1 = ${TestGate("logicGate1", "A")}") // Should return 0.5
+    println(s"TestGate result for A after Anon Scope in logicGate1 = ${TestGate("logicGate1", "A")}") // Should return 0.5
 
     println("Running more complex gate evaluations")
 
