@@ -78,8 +78,8 @@ This project implements a Domain-Specific Language (DSL) for handling fuzzy logi
    - **Syntax**:
      ```scala
      AnonymousScope {
-       Scope(Gate("tempGate")) {Assign(FuzzyVariable("tempVar"), FuzzyValue(0.11))}
        // Temporary assignments and operations
+       Scope(Gate("tempGate")) {Assign(FuzzyVariable("tempVar"), FuzzyValue(0.11))}
        Assign(FuzzyVariable("Y"), FuzzyValue(0.9))
      }
      ```
