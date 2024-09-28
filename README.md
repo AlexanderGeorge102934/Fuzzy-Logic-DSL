@@ -47,7 +47,7 @@ This project implements a Domain-Specific Language (DSL) for handling fuzzy logi
      ```
    - In the above example, `A` is scoped within `myGate`.
 
-2. ### Assigning Expressions to Gates:
+2. **Assigning Expressions to Gates**:
 
 You can assign a fuzzy expression to a gate, allowing the gate to evaluate the expression.
 
