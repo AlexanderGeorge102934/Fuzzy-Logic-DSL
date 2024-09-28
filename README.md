@@ -14,9 +14,11 @@ Gate Evaluation: Fuzzy expressions can be assigned to gates and evaluated.
 You can create fuzzy expressions using predefined operations such as ADD, MULT, AND, OR, XOR, COMPLEMENT, and ALPHA_CUT. These expressions work on fuzzy variables and values within specific gates or globally.
 
 ### Example Operations:
-''' val expr1 = ADD(FuzzyValue(0.5), FuzzyValue(0.4))    // Returns min(1.0, 0.5 + 0.4)
+```
+val expr1 = ADD(FuzzyValue(0.5), FuzzyValue(0.4))    // Returns min(1.0, 0.5 + 0.4)
 val expr2 = AND(FuzzyVariable("A"), FuzzyVariable("B")) // Returns min(A, B)
-val expr3 = COMPLEMENT(FuzzyVariable("A")) // Returns 1.0 - A '''
+val expr3 = COMPLEMENT(FuzzyVariable("A")) // Returns 1.0 - A
+```
 
 
 
