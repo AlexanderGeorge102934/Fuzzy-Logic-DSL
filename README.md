@@ -11,7 +11,7 @@ This project implements a Domain-Specific Language (DSL) for handling fuzzy logi
    
 2. **Operations**:
    - **Fuzzy expressions** are operations or transformations applied to fuzzy variables. The DSL supports various fuzzy operations like:
-   - Addition (ADD): Sum of two variables, capped at 1.0.
+   -- Addition (ADD): Sum of two variables, capped at 1.0.
    - Multiplication (MULT): Product of two variables.
    - Complement (COMPLEMENT): Complement of a variable, equivalent to 1 minus the variable's value.
    - AND (FuzzyAND): Takes the minimum of two variables.
