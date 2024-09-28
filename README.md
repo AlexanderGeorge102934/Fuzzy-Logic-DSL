@@ -10,7 +10,7 @@ This project implements a Domain-Specific Language (DSL) for handling fuzzy logi
    - A **Fuzzy Value** is a numerical value between 0 and 1 that represents a degree of truth.
    
 2. **Operations**:
-   **Fuzzy expressions** are operations or transformations applied to fuzzy variables. The DSL supports various fuzzy operations like:
+   - **Fuzzy expressions** are operations or transformations applied to fuzzy variables. The DSL supports various fuzzy operations like:
    - Addition (ADD): Sum of two variables, capped at 1.0.
    - Multiplication (MULT): Product of two variables.
    - Complement (COMPLEMENT): Complement of a variable, equivalent to 1 minus the variable's value.
