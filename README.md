@@ -49,7 +49,7 @@ This project implements a Domain-Specific Language (DSL) for handling fuzzy logi
 
 2. **Assigning Expressions to Gates**:
    - You can assign a fuzzy expression to a gate, allowing the gate to evaluate the expression.
-   - Syntax:
+   - Syntax: Assign(Gate, Expression)(using Gate)
      ```scala
      Assign(Gate("logicGate1"), ADD(FuzzyVariable("A"), FuzzyVariable("B")))(using Gate("logicGate1"))
      ```
