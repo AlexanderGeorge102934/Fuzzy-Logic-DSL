@@ -34,20 +34,20 @@ This project implements a Domain-Specific Language (DSL) for handling fuzzy logi
 ## Key DSL Functions
 
 1. **Assigning Variables**:
-   - By default, variables are assigned to the **global scope** if not enclosed within a gate-specific `Scope` block.
-   - **Syntax for global assignment**: `Assign(FuzzyVariable, FuzzyValue)`
-   Example:
-     ```scala
+- By default, variables are assigned to the **global scope** if not enclosed within a gate-specific `Scope` block.
+- **Syntax for global assignment**: `Assign(FuzzyVariable, FuzzyValue)`
+Example:
+  ```scala
      Assign(FuzzyVariable("X"), FuzzyValue(0.2)) // Global assignment
-     ```
-   - **Syntax for gate-scoped assignment**: `Scope(Gate){Assign(FuzzyVariable, FuzzyValue)}`
-   Example:
-     ```scala
-     Scope(Gate("myGate")) {
-       Assign(FuzzyVariable("A"), FuzzyValue(0.5)) // A is scoped within myGate
-     }
-     ```
-   - In the above example, `A` is scoped within `myGate`.
+  ```    
+- **Syntax for gate-scoped assignment**: `Scope(Gate){Assign(FuzzyVariable, FuzzyValue)}`
+Example:
+  ```scala
+  Scope(Gate("myGate")) {
+    Assign(FuzzyVariable("A"), FuzzyValue(0.5)) // A is scoped within myGate
+  }
+  ```
+- In the above example, `A` is scoped within `myGate`.
 
 2. **Assigning Expressions to Gates**:
 
