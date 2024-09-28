@@ -19,7 +19,7 @@ This project implements a Domain-Specific Language (DSL) for handling fuzzy logi
       - XOR (FuzzyXOR): The absolute difference between two variables.
       - Alpha Cut (ALPHA_CUT): A threshold operation that returns 0 if the variable is below the threshold, otherwise returns the variable's value.
    
-   Each of these operations works on fuzzy variables and can be assigned to a gate to evaluate the result of an expression.
+   - Each of these operations works on fuzzy variables and can be assigned to a gate to evaluate the result of an expression.
    
    
 3. **Scopes**:
