@@ -1,7 +1,0 @@
-[0m[[0m[31merror[0m] [0m[0m[31m[31m-- [E050] Type Error: C:\Users\Alexander George\IdeaProjects\HWCS476\src\test\scala\FuzzyLogicTest.scala:26:32 [0m[0m[0m
-[0m[[0m[31merror[0m] [0m[0m[31m26 |[0m    result.elements.mapValues(_.round([31m2[0m))  shouldEqual Map([31m"x1"[0m -> [31m0.8[0m, [31m"x2"[0m -> [31m0.2[0m)[0m
-[0m[[0m[31merror[0m] [0m[0m[31m[31m   |[0m                              ^^^^^^^[0m[0m
-[0m[[0m[31merror[0m] [0m[0m[31m   |[0m               [33mmethod[0m [35mround[0m in [33mclass[0m [35mRichDouble[0m does not take parameters[0m
-[0m[[0m[31merror[0m] [0m[0m[31m   |[0m[0m
-[0m[[0m[31merror[0m] [0m[0m[31m   |[0m longer explanation available when compiling with `-explain`[0m
-[0m[[0m[31merror[0m] [0m[0mone error found[0m

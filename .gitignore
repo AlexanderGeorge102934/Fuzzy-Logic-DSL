@@ -1,0 +1,62 @@
+# Ignore Mac system files
+.DS_Store
+
+# IntelliJ project files
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# sbt project files
+.project
+.target/
+.cache/
+.history/
+*.class
+*.log
+lib_managed/
+src_managed/
+dist/
+target/
+out/
+lib_managed/
+src_managed/
+.classpath
+.project
+.settings/
+.idea_modules/
+*.log
+build/
+
+# Scala build artifacts
+*.class
+*.jar
+*.war
+*.ear
+*.dll
+*.exe
+*.so
+*.dylib
+
+# Coverage reports
+coverage/
+.coverage
+
+# ScalaTest reports
+test-reports/
+
+# sbt's output directories
+target/
+.cache/
+project/target/
+project/.cache/
+
+# Compiled files and folders
+*.swp
+*.swo
+*.tmp
+
+# Other IntelliJ files
+.idea/
+*.iml
+*.ipr

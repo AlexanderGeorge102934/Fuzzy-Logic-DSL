@@ -7,6 +7,7 @@ object FuzzyLogicDSL:
 
   given env: Environment = mutable.Map()
   val globalEnv: GlobalEnvironment = mutable.Map()
+
   abstract class FuzzyExpr:
     def eval: Double
 
@@ -158,7 +159,7 @@ object Main:
     println(s"TestGate result for Global X after locally changing local X = ${TestGate("global", "X")}") // Should return 0.2
 
 
-    // Anonymous Scope (no variable assignments, only expression evaluations)
+    // Anonymous Scope
     AnonymousScope {
       Assign(FuzzyVariable("Y"), FuzzyValue(0.90)) // Global assignment
       println(s"Global Y in Anon Scope = ${TestGate("global", "Y")}") // Should return 0.9
