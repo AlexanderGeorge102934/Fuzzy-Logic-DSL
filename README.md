@@ -82,6 +82,16 @@ This project implements a Domain-Specific Language (DSL) for handling fuzzy logi
        Assign(FuzzyVariable("Y"), FuzzyValue(0.9))
      }
      ```
+## Error Handling
+- **Out-of-scope Variables**: If you attempt to retrieve a variable that has not been assigned or is out of scope, the system will throw an error:
+  ```scala
+  throw new Exception(s"Variable $name not found globally or in gate $gateName")
+  ```
+- **Unassigned Gate Expressions**: If you try to evaluate a gate that does not have an assigned expression, the system will throw an error:
+  ```scala
+  throw new Exception(s"No expression assigned to gate $gateName")
+  ```
+
 
 ## Project Structure
 - `src/main/scala/main.scala` – Main code for the project.
