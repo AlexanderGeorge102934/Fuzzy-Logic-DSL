@@ -54,9 +54,9 @@ You can assign a fuzzy expression to a gate, allowing the gate to evaluate the e
 - **Syntax**: `Assign(Gate, Expression)(using Gate)`
 
 Example:
-
+```scala
 Assign(Gate("logicGate1"), ADD(FuzzyVariable("A"), FuzzyVariable("B")))(using Gate("logicGate1"))
-
+```
 - **Gate**: `Gate("logicGate1")` defines the scope where the fuzzy logic expression will be evaluated.
 - **Fuzzy Expression**: The fuzzy logic operation like `ADD(FuzzyVariable("A"), FuzzyVariable("B"))` performs an addition between fuzzy variables A and B (or other operations like `MULT`, `AND`, etc.).
 - **Fuzzy Variables**: Variables (`FuzzyVariable("A")`, `FuzzyVariable("B")`) must be assigned values in the same gate or global scope before assigning an expression to the gate.
