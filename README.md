@@ -1,7 +1,7 @@
 # Domain Specific Language FuzzyLogic
 
 ## Overview
-Scala project that explores domain specific languages with fuzzy logic operations. This project includes a main implementation in Scala and accompanying tests.
+Scala project that explores domain specific languages with fuzzy logic operations. This project has a main implementation in Scala and accompanying tests.
 
 ## Project Structure
 - `src/main/scala/main.scala` – Main code for the project.
