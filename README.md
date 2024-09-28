@@ -17,8 +17,8 @@ To get started with this project, you'll need:
 - IntelliJ IDEA or another Scala-compatible IDE
 
 ### Cloning the repository
-To clone this project to your local machine, use the following command:
+Clone the project to your local machine
 
-```bash
-git clone https://github.com/your-username/DomainSpecificLanguageFuzzyLogic.git
-cd DomainSpecificLanguageFuzzyLogic
+
+
+
