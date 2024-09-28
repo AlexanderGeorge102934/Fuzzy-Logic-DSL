@@ -6,7 +6,7 @@ This project implements a Domain-Specific Language (DSL) for handling fuzzy logi
 ## Key Concepts
 
 1. **Fuzzy Variables and Values**:
-   - A **Fuzzy Variable** represents a named entity with a fuzzy value between 0 and 1.
+   - A **Fuzzy Variable** Fuzzy variables represent values that can range between 0 and 1. These variables can be assigned specific values using the Assign function. Assignments can be global or scoped to a    particular gate. Global variables are available across the entire program, while scoped variables are local to a defined gate..
    - A **Fuzzy Value** is a numerical value between 0 and 1 that represents a degree of truth.
    
 2. **Operations**:
