@@ -53,6 +53,10 @@ This project implements a Domain-Specific Language (DSL) for handling fuzzy logi
      ```scala
      Assign(Gate("logicGate1"), ADD(FuzzyVariable("A"), FuzzyVariable("B")))(using Gate("logicGate1"))
      ```
+     Gate: Gate("logicGate1") defines the scope where the fuzzy logic expression will be evaluated.
+     Fuzzy Expression: The fuzzy logic operation like ADD(FuzzyVariable("A"), FuzzyVariable("B")) performs an addition between fuzzy variables A and B (or other operations like MULT, AND, etc.).
+     Fuzzy Variables: Variables (FuzzyVariable("A"), FuzzyVariable("B")) must be assigned values in the same gate or global scope before assigning an expression to the gate.
+     using Gate("logicGate1"): This defines the scope for the gate where the fuzzy expression will be evaluated.
 
 3. **Testing Variables**:
    - You can use `TestGate` to check the value of a variable within a specific scope.
