@@ -11,13 +11,13 @@ This project implements a Domain-Specific Language (DSL) for handling fuzzy logi
    
 2. **Operations**:
    - **Fuzzy expressions** are operations or transformations applied to fuzzy variables. The DSL supports various fuzzy operations like:
-   -- Addition (ADD): Sum of two variables, capped at 1.0.
-   - Multiplication (MULT): Product of two variables.
-   - Complement (COMPLEMENT): Complement of a variable, equivalent to 1 minus the variable's value.
-   - AND (FuzzyAND): Takes the minimum of two variables.
-   - OR (FuzzyOR): Takes the maximum of two variables.
-   - XOR (FuzzyXOR): The absolute difference between two variables.
-   - Alpha Cut (ALPHA_CUT): A threshold operation that returns 0 if the variable is below the threshold, otherwise returns the variable's value.
+      - Addition (ADD): Sum of two variables, capped at 1.0.
+      - Multiplication (MULT): Product of two variables.
+      - Complement (COMPLEMENT): Complement of a variable, equivalent to 1 minus the variable's value.
+      - AND (FuzzyAND): Takes the minimum of two variables.
+      - OR (FuzzyOR): Takes the maximum of two variables.
+      - XOR (FuzzyXOR): The absolute difference between two variables.
+      - Alpha Cut (ALPHA_CUT): A threshold operation that returns 0 if the variable is below the threshold, otherwise returns the variable's value.
    
    Each of these operations works on fuzzy variables and can be assigned to a gate to evaluate the result of an expression.
    
