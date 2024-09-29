@@ -119,11 +119,11 @@ To set this project up you need to
    - ```sbt clean compile```
  
 ### Running the Project
-To compile the project, run the following command in the terminal
+- To compile the project, run the following command in the terminal
    - ```sbt compile```
-To run the main program
+- To run the main program
    - ```sbt run```
-To run FuzzyLogicTests
+- To run FuzzyLogicTests
    - ```sbt test```
 
 
