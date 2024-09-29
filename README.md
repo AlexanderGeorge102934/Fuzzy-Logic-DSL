@@ -105,7 +105,25 @@ This project implements a Domain-Specific Language (DSL) for handling fuzzy logi
 To get started with this project, you'll need:
 - Scala 2.13.x or higher
 - SBT (Simple Build Tool) installed
-- IntelliJ IDEA or another Scala-compatible IDE
+- IntelliJ IDEA 
 
-### Cloning the repository
-Clone the project to your local machine:
+### Setting Up Project
+To set this project up you need to 
+- Clone the project repository to your local machine
+- Open the cloned project in IntelliJ IDEA
+   - Navigate to the cloned repository folder and open it
+   - IntelliJ will automatically detect the build.sbt file and set up the project dependencies
+   - If prompted, click "Enable Auto-Import" to automatically download and manage the Scala dependencies via SBT
+- Ensure that you have the Java Development Kit (JDK) installed (between versions 8 and 22)
+- In the terminal inside IntelliJ, navigate to the project root and run the following SBT commands to ensure everything is properly set up
+   - ```sbt clean compile```
+ 
+### Running the Project
+To compile the project, run the following command in the terminal
+   - ```sbt compile```
+To run the main program
+   - ```sbt run```
+To run FuzzyLogicTests
+   - ```sbt test```
+
+
