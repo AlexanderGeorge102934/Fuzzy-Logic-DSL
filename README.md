@@ -1,7 +1,7 @@
 # Fuzzy Logic DSL
 
 ## Overview
-This project implements a Domain-Specific Language (DSL) for handling fuzzy logic operations. The DSL allows for creating and managing fuzzy variables, applying common fuzzy logic operations (such as AND, OR, ADD, MULT, etc.), and scoping variables both globally and within specific "gates". The gates represent logical contexts in which different operations can be performed. The DSL includes functionality for handling scoping of variables, assigning variables and expressions to gates, and evaluating expressions assigned to gates.
+This project implements a Domain-Specific Language for handling fuzzy logic operations. The DSL allows for creating and managing fuzzy variables, applying common fuzzy logic operations (such as AND, OR, ADD, MULT, etc.), and scoping variables both globally and within specific "gates". The gates represent logical contexts in which different operations can be performed. The DSL includes functionality for handling scoping of variables, assigning variables and expressions to gates, and evaluating expressions assigned to gates.
 
 ## Key Concepts
 
@@ -102,7 +102,6 @@ This project implements a Domain-Specific Language (DSL) for handling fuzzy logi
 ## Getting Started
 
 ### Prerequisites
-To get started with this project, you'll need:
 - Scala 2.13.x or higher
 - SBT (Simple Build Tool) installed
 - IntelliJ IDEA 
