@@ -63,14 +63,14 @@ This project implements a Domain-Specific Language (DSL) for handling fuzzy logi
      ```
    - **Syntax for gate-specific scope**:
      ```scala
-     TestGate("myGate", "A")
+     TestGate("myGate", "A") // Check value of A within the specific gate "myGate"
      ```
 
 ### 4. **Evaluating Gate Expressions**:
    - Once an expression is assigned to a gate, you can evaluate it using `EvaluateGateExpression`.
    - **Syntax**:
      ```scala
-     EvaluateGateExpression("logicGate1")
+     EvaluateGateExpression("logicGate1") // Will return the numeric value of the expression of logicGate1 
      ```
 
 ### 5. **Anonymous Scope Usage**:
