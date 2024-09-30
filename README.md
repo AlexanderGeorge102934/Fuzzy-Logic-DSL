@@ -59,7 +59,7 @@ This project implements a Domain-Specific Language for handling fuzzy logic oper
    - You can use `TestGate` to check the value of a variable within a specific scope.
    - **Syntax for global scope**:
      ```scala
-     TestGate("global", "X")
+     TestGate("global", "X") // Check value of X within the global scope 
      ```
    - **Syntax for gate-specific scope**:
      ```scala
