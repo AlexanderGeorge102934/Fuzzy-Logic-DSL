@@ -103,7 +103,7 @@ This project implements a Domain-Specific Language for handling fuzzy logic oper
 
 ### Prerequisites
 - Scala 2.13.x or higher
-- SBT (Simple Build Tool) installed
+- SBT (Simple Build Tool) installed SBT version 1.10.1
 - IntelliJ IDEA 
 
 ### Setting Up Project
