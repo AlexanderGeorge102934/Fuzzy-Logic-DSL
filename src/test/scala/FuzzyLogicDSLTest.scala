@@ -14,7 +14,7 @@ class FuzzyLogicDSLTest extends AnyFlatSpec with Matchers with BeforeAndAfterEac
 
   behavior of "Fuzzy logic expressions and scoping"
 
-  // Test expressions
+  // Test addition of fuzzy variables with a cap of 1.0
   it should "correctly add fuzzy variables (capped at 1.0)" in {
     Scope(Gate("addGate")) {
       Assign(FuzzyVariable("A"), FuzzyValue(0.6))
@@ -27,6 +27,7 @@ class FuzzyLogicDSLTest extends AnyFlatSpec with Matchers with BeforeAndAfterEac
     EvaluateGateExpression("addGate") shouldBe 1.0
   }
 
+  // Test multiplication of fuzzy variables
   it should "correctly multiply fuzzy variables" in {
     Scope(Gate("multGate")) {
       Assign(FuzzyVariable("A"), FuzzyValue(0.5))
@@ -39,6 +40,7 @@ class FuzzyLogicDSLTest extends AnyFlatSpec with Matchers with BeforeAndAfterEac
     EvaluateGateExpression("multGate") shouldBe 0.35
   }
 
+  // Test complement operation on a fuzzy variable
   it should "correctly apply complement operation (1 - A)" in {
     Scope(Gate("complementGate")) {
       Assign(FuzzyVariable("A"), FuzzyValue(0.3))
@@ -49,6 +51,7 @@ class FuzzyLogicDSLTest extends AnyFlatSpec with Matchers with BeforeAndAfterEac
     EvaluateGateExpression("complementGate") shouldBe 0.7
   }
 
+  // Test AND operation (min(A, B))
   it should "correctly apply AND (min(A, B))" in {
     Scope(Gate("andGate")) {
       Assign(FuzzyVariable("A"), FuzzyValue(0.1))
@@ -61,6 +64,7 @@ class FuzzyLogicDSLTest extends AnyFlatSpec with Matchers with BeforeAndAfterEac
     EvaluateGateExpression("andGate") shouldBe 0.1
   }
 
+  // Test OR operation (max(A, B))
   it should "correctly apply OR (max(A, B))" in {
     Scope(Gate("orGate")) {
       Assign(FuzzyVariable("A"), FuzzyValue(0.5))
@@ -73,6 +77,7 @@ class FuzzyLogicDSLTest extends AnyFlatSpec with Matchers with BeforeAndAfterEac
     EvaluateGateExpression("orGate") shouldBe 0.5
   }
 
+  // Test XOR operation (|A - B|)
   it should "correctly apply XOR (|A - B|)" in {
     Scope(Gate("xorGate")) {
       Assign(FuzzyVariable("A"), FuzzyValue(0.4))
@@ -85,6 +90,7 @@ class FuzzyLogicDSLTest extends AnyFlatSpec with Matchers with BeforeAndAfterEac
     EvaluateGateExpression("xorGate") shouldBe (0.2 +- 1e-10)
   }
 
+  // Test alpha cut operation on a fuzzy variable
   it should "correctly apply alpha cut (A >= 0.6)" in {
     Scope(Gate("alphaCutGate")) {
       Assign(FuzzyVariable("A"), FuzzyValue(0.5))
@@ -95,12 +101,13 @@ class FuzzyLogicDSLTest extends AnyFlatSpec with Matchers with BeforeAndAfterEac
     EvaluateGateExpression("alphaCutGate") shouldBe 0.0
   }
 
-  // Test scoping and variable assignments
+  // Test global variable assignment and retrieval
   it should "assign global variables and retrieve them correctly" in {
     Assign(FuzzyVariable("X"), FuzzyValue(0.4))
     TestGate("global", "X") shouldBe 0.4
   }
 
+  // Test scoping of variables within gates and access to global variables in gates
   it should "scope variables within gates and ensure global variables are accessible in gates" in {
     Assign(FuzzyVariable("X"), FuzzyValue(0.4))
 
@@ -114,7 +121,7 @@ class FuzzyLogicDSLTest extends AnyFlatSpec with Matchers with BeforeAndAfterEac
     TestGate("logicGate1", "X") shouldBe 0.4
   }
 
-  // Test anonymous scope
+  // Test restoration of environment after exiting an anonymous scope
   it should "restore original environment after exiting anonymous scope" in {
     Assign(FuzzyVariable("Y"), FuzzyValue(0.5))
 
@@ -126,8 +133,8 @@ class FuzzyLogicDSLTest extends AnyFlatSpec with Matchers with BeforeAndAfterEac
     TestGate("global", "Y") shouldBe 0.5
   }
 
+  // Test evaluation of expressions within anonymous scopes and check for out-of-scope variable access
   it should "evaluate expressions within anonymous scopes correctly and throw an exception for out-of-scope variables" in {
-    // Inside the anonymous scope
     AnonymousScope {
       Scope(Gate("anonGate")) {
         Assign(FuzzyVariable("A"), FuzzyValue(0.7))
@@ -144,6 +151,7 @@ class FuzzyLogicDSLTest extends AnyFlatSpec with Matchers with BeforeAndAfterEac
     a[Exception] should be thrownBy TestGate("anonGate", "A")
   }
 
+  // Test reverting variables back to their original state after exiting anonymous scope
   it should "revert variables back to their original state after anonymous scope ends" in {
     Assign(FuzzyVariable("Z"), FuzzyValue(0.4))
 

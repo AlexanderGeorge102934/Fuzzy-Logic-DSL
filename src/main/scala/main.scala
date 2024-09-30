@@ -5,20 +5,26 @@ type GlobalEnvironment = mutable.Map[String, Double] // Global variable environm
 
 object FuzzyLogicDSL:
 
-  given env: Environment = mutable.Map()
-  val globalEnv: GlobalEnvironment = mutable.Map()
+  given env: Environment = mutable.Map() // Environment for storing variables within specific gates
+  val globalEnv: GlobalEnvironment = mutable.Map() // global environment for variables not tied to a specific gate
 
+  // Abstract class for fuzzy expressions, with the 'eval' method for evaluation
   abstract class FuzzyExpr:
     def eval: Double
 
-  case class Gate(name: String)
-  case class GateSystem(gates: mutable.Map[String, FuzzyExpr] = mutable.Map())
+
+  case class Gate(name: String) // Define a gate by name
+  case class GateSystem(gates: mutable.Map[String, FuzzyExpr] = mutable.Map()) // Holds all gates and their associated fuzzy expressions
   val gateSystem = GateSystem()
 
+  // The global gate system for storing gates and their expressions
   case class FuzzyValue(v: Double) extends FuzzyExpr:
     def eval: Double = v
 
-  case class FuzzyVariable(name: String) extends FuzzyExpr:
+
+
+
+  case class FuzzyVariable(name: String) extends FuzzyExpr:// Represents a fuzzy value that can be evaluated
     def eval: Double =
       // Try fetching the value from the environment based on the current gate's scope
       summon[Environment].collectFirst {
@@ -66,11 +72,12 @@ object FuzzyLogicDSL:
     case _ => throw new Exception("Invalid assignment")
 
 
-
+  // Define a scope for a specific gate, allowing assignments and operations within the gate
   def Scope(gate: Gate)(block: Gate ?=> Unit): Unit =
     given Gate = gate
     block
 
+  // Define an anonymous scope that temporarily modifies variables and restores them after execution
   def AnonymousScope(block: => Unit): Unit =
     // Save current environment specific gates
     val originalEnv = summon[Environment].map {
@@ -129,67 +136,70 @@ object Main:
   def main(args: Array[String]): Unit =
     println("Running Scope and Assignment Tests")
 
-    // Assigning variables without a scope to global values
+    // Assign global variables X and Y
     Assign(FuzzyVariable("X"), FuzzyValue(0.2)) // Global assignment
     Assign(FuzzyVariable("Y"), FuzzyValue(0.4)) // Global assignment
 
+    // Test global assignments
     println(s"Global X = ${TestGate("global", "X")}") // Should return 0.2
     println(s"Global Y = ${TestGate("global", "Y")}") // Should return 0.4
 
-
-
-    // Normal Scope (variables will persist)
+    // Assign variables A and B within a scope (logicGate1)
     Scope(Gate("logicGate1")) {
       Assign(FuzzyVariable("A"), FuzzyValue(0.5))
       Assign(FuzzyVariable("B"), FuzzyValue(0.7))
     }
 
-
+    // Assign an expression to a gate (logicGate1) and evaluate it
     Assign(Gate("logicGate1"), ADD(FuzzyVariable("A"), FuzzyVariable("B")))(using Gate("logicGate1"))
 
+    // Test the results of logicGate1
     println(s"TestGate result for A in logicGate1 = ${TestGate("logicGate1", "A")}") // Should return 0.5
     println(s"TestGate result for Global X in logicGate1 = ${TestGate("logicGate1", "X")}") // Should return 0.2
     println(s"Expression result for logicGate1 A + B = ${EvaluateGateExpression("logicGate1")}") // Should evaluate A + B = 0.5 + 0.7
 
-    Scope(Gate("logicGate1")){
+    // Change the value of X locally in logicGate1
+    Scope(Gate("logicGate1")) {
       Assign(FuzzyVariable("X"), FuzzyValue(0.7))
     }
 
+    // Test the local and global values of X
     println(s"TestGate result for local X in logicGate1 = ${TestGate("logicGate1", "X")}") // Should return 0.7
     println(s"TestGate result for Global X after locally changing local X = ${TestGate("global", "X")}") // Should return 0.2
 
-
-    // Anonymous Scope
+    // Using an anonymous scope to temporarily change values
     AnonymousScope {
-      Assign(FuzzyVariable("Y"), FuzzyValue(0.90)) // Global assignment
+      Assign(FuzzyVariable("Y"), FuzzyValue(0.90)) // Global assignment within anon scope
       println(s"Global Y in Anon Scope = ${TestGate("global", "Y")}") // Should return 0.9
 
-      // Assign variables in tempGate before testing it
+      // Assign a temporary variable in tempGate
       Scope(Gate("tempGate")) {
         Assign(FuzzyVariable("tempVar"), FuzzyValue(0.11)) // Assign a value to tempVar
       }
 
-      // Inside anonymous scope, modifying A for logicGate1 (this should not persist after scope ends)
+      // Temporarily modify A in logicGate1 within anon scope
       Scope(Gate("logicGate1")) {
         Assign(FuzzyVariable("A"), FuzzyValue(0.29))
       }
 
+      // Test logicGate1 with modified A
       println(s"Expression result for logicGate1 A + B (A is now 0.29, Anon Scope) = ${EvaluateGateExpression("logicGate1")}") // Should evaluate A + B = 0.29 + 0.7
 
-      // You can evaluate an expression within the scope
+      // Evaluate an expression in tempGate
       Assign(Gate("tempGate"), ADD(MULT(FuzzyValue(0.9), FuzzyValue(0.2)), FuzzyValue(0.3)))(using Gate("tempGate"))
+      println(s"Expression result for tempGate in Anon Scope = ${EvaluateGateExpression("tempGate")}") // Should evaluate (0.9 * 0.2) + 0.3
 
-      println(s"Expression result for tempGate in Anon Scope= ${EvaluateGateExpression("tempGate")}") //Should evaluate (0.9 * 0.2)  + 0.3
-
-      // Testing the expression via a gate
+      // Test the temporary variable in tempGate
       println(s"Anonymous Scope tempGate = ${TestGate("tempGate", "tempVar")}") // Should return 0.11
 
-      println(s"TestGate result for A in Anon Scope logicGate1 = ${TestGate("logicGate1", "A")}") // Should Return 0.29 since scope of LogicGate1 Exists
+      // Test the modified A in logicGate1 within the anon scope
+      println(s"TestGate result for A in Anon Scope logicGate1 = ${TestGate("logicGate1", "A")}") // Should return 0.29 since scope of logicGate1 exists
     }
 
+    // Test Y after exiting the anonymous scope
     println(s"Global Y after Anon Scope = ${TestGate("global", "Y")}") // Should return 0.4
 
-    // Temp Gate shouldn't exist and SHOULD throw an error
+    // Test tempGate after exiting the anonymous scope (shouldn't exist) and SHOULD throw an error
     try {
       println(s"Anonymous Scope tempGate = ${TestGate("tempGate", "tempVar")}")
     } catch {
@@ -197,15 +207,6 @@ object Main:
         println(s"Error during TestGate for tempGate: ${e.getMessage}")
     }
 
-
-    // Outside the anonymous scope, the environment should be unchanged
+    // Test logicGate1 after exiting the anonymous scope (A should revert)
     println(s"TestGate result for A after Anon Scope in logicGate1 = ${TestGate("logicGate1", "A")}") // Should return 0.5
 
-    println("Running more complex gate evaluations")
-
-    // Example of gate logic assignment with fuzzy expressions
-    Scope(Gate("logicGate1")) {
-      Assign(Gate("logicGate1"), ADD(MULT(FuzzyVariable("A"), FuzzyValue(0.2)), FuzzyValue(0.3)))(using Gate("logicGate1"))
-    }
-
-    println(s"TestGate result for logicGate1 = ${TestGate("logicGate1", "A")}")
