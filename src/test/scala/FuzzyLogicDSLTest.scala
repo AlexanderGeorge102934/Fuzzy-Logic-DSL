@@ -122,6 +122,43 @@ class FuzzyLogicDSLTest extends AnyFlatSpec with Matchers with BeforeAndAfterEac
     EvaluateGateExpression("alphaCutGate") shouldBe 0.0
   }
 
+  // Test alpha cut operation on a fuzzy variable
+  it should "correctly apply alpha cut (A >= 0.6) pt2" in {
+    Scope(Gate("alphaCutGate")) {
+      Assign(FuzzyVariable("A"), FuzzyValue(0.6))
+      Assign(Gate("alphaCutGate"), ALPHA_CUT(FuzzyVariable("A"), 0.6))(using Gate("alphaCutGate"))
+    }
+
+    EvaluateGateExpression("alphaCutGate") shouldBe 0.6
+  }
+
+  // Test combining multiple fuzzy logic operations (ADD and MULT) into one gate
+  it should "correctly combine ADD and MULT operations with float precision handling" in {
+    Scope(Gate("complexGate1")) {
+      Assign(FuzzyVariable("A"), FuzzyValue(0.5))
+      Assign(FuzzyVariable("B"), FuzzyValue(0.6))
+      Assign(FuzzyVariable("C"), FuzzyValue(0.4))
+      // Combining ADD and MULT
+      Assign(Gate("complexGate1"), ADD(MULT(FuzzyVariable("A"), FuzzyVariable("B")), FuzzyVariable("C")))(using Gate("complexGate1"))
+    }
+
+    EvaluateGateExpression("complexGate1") shouldBe (0.7 +- 1e-10) // Expected result: 0.7, with tolerance for float precision
+  }
+
+  // Test combining multiple fuzzy logic operations (AND, OR, XOR) into one gate
+  it should "correctly combine AND, OR, and XOR operations with float precision handling" in {
+    Scope(Gate("complexGate2")) {
+      Assign(FuzzyVariable("A"), FuzzyValue(0.3))
+      Assign(FuzzyVariable("B"), FuzzyValue(0.8))
+      Assign(FuzzyVariable("C"), FuzzyValue(0.5))
+      // Combining AND, OR, and XOR
+      Assign(Gate("complexGate2"), XOR(AND(FuzzyVariable("A"), FuzzyVariable("B")), OR(FuzzyVariable("A"), FuzzyVariable("C"))))(using Gate("complexGate2"))
+    }
+
+    EvaluateGateExpression("complexGate2") shouldBe (0.2 +- 1e-10) // Expected result: 0.2, with tolerance for float precision
+  }
+
+
   // Test global variable assignment and retrieval
   it should "assign global variables and retrieve them correctly" in {
     Assign(FuzzyVariable("X"), FuzzyValue(0.4))
