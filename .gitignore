@@ -19,17 +19,12 @@ src_managed/
 dist/
 target/
 out/
-lib_managed/
-src_managed/
 .classpath
-.project
 .settings/
 .idea_modules/
-*.log
 build/
 
 # Scala build artifacts
-*.class
 *.jar
 *.war
 *.ear
@@ -46,8 +41,6 @@ coverage/
 test-reports/
 
 # sbt's output directories
-target/
-.cache/
 project/target/
 project/.cache/
 
@@ -56,7 +49,3 @@ project/.cache/
 *.swo
 *.tmp
 
-# Other IntelliJ files
-.idea/
-*.iml
-*.ipr
