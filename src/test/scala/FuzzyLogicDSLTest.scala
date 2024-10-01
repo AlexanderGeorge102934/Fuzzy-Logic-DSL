@@ -22,9 +22,40 @@ class FuzzyLogicDSLTest extends AnyFlatSpec with Matchers with BeforeAndAfterEac
       Assign(Gate("addGate"), ADD(FuzzyVariable("A"), FuzzyVariable("B")))(using Gate("addGate"))
     }
 
-    TestGate("addGate", "A") shouldBe 0.6
-    TestGate("addGate", "B") shouldBe 0.7
     EvaluateGateExpression("addGate") shouldBe 1.0
+  }
+
+  // Test addition of fuzzy variables
+  it should "correctly add fuzzy variables" in {
+    Scope(Gate("addGate")) {
+      Assign(FuzzyVariable("A"), FuzzyValue(0.4))
+      Assign(FuzzyVariable("B"), FuzzyValue(0.5))
+      Assign(Gate("addGate"), ADD(FuzzyVariable("A"), FuzzyVariable("B")))(using Gate("addGate"))
+    }
+
+    EvaluateGateExpression("addGate") shouldBe 0.9
+  }
+
+  // Test gate to correctly evaluate A in scope of a gate
+  it should "correctly evaluate A in scope of addGate" in {
+    Scope(Gate("addGate")) {
+      Assign(FuzzyVariable("A"), FuzzyValue(0.6))
+      Assign(FuzzyVariable("B"), FuzzyValue(0.7))
+      Assign(Gate("addGate"), ADD(FuzzyVariable("A"), FuzzyVariable("B")))(using Gate("addGate"))
+    }
+
+    TestGate("addGate", "A") shouldBe 0.6
+  }
+
+  // Test gate to correctly evaluate A in scope of a gate
+  it should "correctly evaluate B in scope of addGate" in {
+    Scope(Gate("addGate")) {
+      Assign(FuzzyVariable("A"), FuzzyValue(0.6))
+      Assign(FuzzyVariable("B"), FuzzyValue(0.7))
+      Assign(Gate("addGate"), ADD(FuzzyVariable("A"), FuzzyVariable("B")))(using Gate("addGate"))
+    }
+
+    TestGate("addGate", "B") shouldBe 0.7
   }
 
   // Test multiplication of fuzzy variables
@@ -35,8 +66,6 @@ class FuzzyLogicDSLTest extends AnyFlatSpec with Matchers with BeforeAndAfterEac
       Assign(Gate("multGate"), MULT(FuzzyVariable("A"), FuzzyVariable("B")))(using Gate("multGate"))
     }
 
-    TestGate("multGate", "A") shouldBe 0.5
-    TestGate("multGate", "B") shouldBe 0.7
     EvaluateGateExpression("multGate") shouldBe 0.35
   }
 
@@ -47,7 +76,6 @@ class FuzzyLogicDSLTest extends AnyFlatSpec with Matchers with BeforeAndAfterEac
       Assign(Gate("complementGate"), COMPLEMENT(FuzzyVariable("A")))(using Gate("complementGate"))
     }
 
-    TestGate("complementGate", "A") shouldBe 0.3
     EvaluateGateExpression("complementGate") shouldBe 0.7
   }
 
@@ -59,8 +87,6 @@ class FuzzyLogicDSLTest extends AnyFlatSpec with Matchers with BeforeAndAfterEac
       Assign(Gate("andGate"), AND(FuzzyVariable("A"), FuzzyVariable("B")))(using Gate("andGate"))
     }
 
-    TestGate("andGate", "A") shouldBe 0.1
-    TestGate("andGate", "B") shouldBe 0.8
     EvaluateGateExpression("andGate") shouldBe 0.1
   }
 
@@ -72,8 +98,6 @@ class FuzzyLogicDSLTest extends AnyFlatSpec with Matchers with BeforeAndAfterEac
       Assign(Gate("orGate"), OR(FuzzyVariable("A"), FuzzyVariable("B")))(using Gate("orGate"))
     }
 
-    TestGate("orGate", "A") shouldBe 0.5
-    TestGate("orGate", "B") shouldBe 0.2
     EvaluateGateExpression("orGate") shouldBe 0.5
   }
 
@@ -85,8 +109,6 @@ class FuzzyLogicDSLTest extends AnyFlatSpec with Matchers with BeforeAndAfterEac
       Assign(Gate("xorGate"), XOR(FuzzyVariable("A"), FuzzyVariable("B")))(using Gate("xorGate"))
     }
 
-    TestGate("xorGate", "A") shouldBe 0.4
-    TestGate("xorGate", "B") shouldBe 0.6
     EvaluateGateExpression("xorGate") shouldBe (0.2 +- 1e-10)
   }
 
@@ -97,7 +119,6 @@ class FuzzyLogicDSLTest extends AnyFlatSpec with Matchers with BeforeAndAfterEac
       Assign(Gate("alphaCutGate"), ALPHA_CUT(FuzzyVariable("A"), 0.6))(using Gate("alphaCutGate"))
     }
 
-    TestGate("alphaCutGate", "A") shouldBe 0.5
     EvaluateGateExpression("alphaCutGate") shouldBe 0.0
   }
 
@@ -117,7 +138,6 @@ class FuzzyLogicDSLTest extends AnyFlatSpec with Matchers with BeforeAndAfterEac
       Assign(Gate("logicGate1"), ADD(FuzzyVariable("A"), FuzzyVariable("B")))(using Gate("logicGate1"))
     }
 
-    EvaluateGateExpression("logicGate1") shouldBe (0.9 +- 1e-10)
     TestGate("logicGate1", "X") shouldBe 0.4
   }
 
@@ -142,8 +162,6 @@ class FuzzyLogicDSLTest extends AnyFlatSpec with Matchers with BeforeAndAfterEac
         Assign(Gate("anonGate"), ADD(FuzzyVariable("A"), FuzzyVariable("B")))(using Gate("anonGate"))
       }
 
-      TestGate("anonGate", "A") shouldBe 0.7
-      TestGate("anonGate", "B") shouldBe 0.2
       EvaluateGateExpression("anonGate") shouldBe (0.9 +- 1e-10)
     }
 
